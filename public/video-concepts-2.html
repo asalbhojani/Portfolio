@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Video Showcase – Next Level</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#a855f7;--sky:#38bdf8;--emerald:#34d399;
+  --rose:#fb7185;--amber:#fbbf24;--bg:#07070f;--card:#0f0f1a;
+}
+body{background:var(--bg);color:#e2e8f0;font-family:'Inter',system-ui,sans-serif;overflow-x:hidden}
+
+/* ── shared header ── */
+.page-title{padding:56px 40px 20px;text-align:center}
+.page-title h1{font-size:2.2rem;font-weight:800;letter-spacing:-.03em}
+.page-title p{color:#475569;font-size:.95rem;margin-top:6px}
+
+/* ══════════════════════════════════════════
+   CONCEPT X — AGENCY SPLIT PREVIEW
+   Left: giant live-changing preview panel
+   Right: hoverable project list
+══════════════════════════════════════════ */
+#conceptX{min-height:100vh;padding:60px 40px;display:flex;flex-direction:column;gap:40px;border-bottom:1px solid rgba(255,255,255,.05)}
+.cx-label{display:flex;align-items:center;gap:14px}
+.cx-badge{padding:4px 14px;border-radius:99px;font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.cx-label h2{font-size:1.3rem;font-weight:700}
+.cx-label p{font-size:.8rem;color:#475569;margin-top:2px}
+
+.cx-layout{display:grid;grid-template-columns:1fr 420px;gap:32px;align-items:center}
+
+/* left panel */
+.cx-preview{
+  position:relative;border-radius:24px;overflow:hidden;
+  aspect-ratio:16/10;background:#000;
+  box-shadow:0 40px 120px rgba(0,0,0,.8);
+}
+.cx-slide{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;
+  opacity:0;transition:opacity .5s ease,transform .5s ease;
+  transform:scale(1.04);
+}
+.cx-slide.active{opacity:1;transform:scale(1)}
+/* gradient backgrounds per project */
+.cx-slide:nth-child(1){background:radial-gradient(ellipse at 30% 40%,#1a0a2e 0%,#07070f 70%)}
+.cx-slide:nth-child(2){background:radial-gradient(ellipse at 70% 30%,#0a1a12 0%,#07070f 70%)}
+.cx-slide:nth-child(3){background:radial-gradient(ellipse at 40% 60%,#0a1520 0%,#07070f 70%)}
+.cx-slide:nth-child(4){background:radial-gradient(ellipse at 60% 40%,#1a0f08 0%,#07070f 70%)}
+.cx-slide:nth-child(5){background:radial-gradient(ellipse at 30% 50%,#1a0a10 0%,#07070f 70%)}
+
+.cx-slide-icon{
+  width:72px;height:72px;border-radius:20px;
+  display:grid;place-items:center;font-size:1.8rem;
+  backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08);
+}
+.cx-slide h3{font-size:1.4rem;font-weight:700}
+.cx-slide p{font-size:.85rem;color:#64748b;text-align:center;max-width:340px;line-height:1.6;padding:0 20px}
+/* fake UI wireframe */
+.cx-wireframe{
+  position:absolute;bottom:0;left:0;right:0;height:45%;
+  display:flex;flex-direction:column;gap:6px;padding:16px 20px;
+  background:linear-gradient(transparent,rgba(0,0,0,.7));
+}
+.cx-wrow{height:8px;border-radius:4px;background:rgba(255,255,255,.06)}
+.cx-wrow:nth-child(1){width:65%}
+.cx-wrow:nth-child(2){width:85%}
+.cx-wrow:nth-child(3){width:50%}
+/* play button in center */
+.cx-play-ring{
+  position:absolute;
+  width:64px;height:64px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.15);
+  display:grid;place-items:center;
+  transition:border-color .3s,transform .3s;
+  cursor:pointer;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:10;
+}
+.cx-play-ring:hover{border-color:rgba(255,255,255,.5);transform:translate(-50%,-50%) scale(1.1)}
+.cx-play-ring svg{margin-left:4px}
+/* overlay label top-left */
+.cx-now-playing{
+  position:absolute;top:16px;left:16px;
+  padding:5px 12px;border-radius:8px;
+  background:rgba(0,0,0,.5);backdrop-filter:blur(8px);
+  font-size:.68rem;color:rgba(255,255,255,.5);
+  border:1px solid rgba(255,255,255,.07);
+  display:flex;align-items:center;gap:6px;
+}
+.cx-dot{width:6px;height:6px;border-radius:50%;background:#34d399;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+/* project number */
+.cx-proj-num{
+  position:absolute;bottom:16px;right:16px;
+  font-size:4rem;font-weight:800;
+  color:rgba(255,255,255,.04);line-height:1;
+  letter-spacing:-.05em;
+}
+
+/* right list */
+.cx-list{display:flex;flex-direction:column;gap:4px}
+.cx-item{
+  display:flex;align-items:center;gap:14px;
+  padding:16px 20px;border-radius:14px;
+  cursor:pointer;
+  transition:background .2s;
+  border:1px solid transparent;
+  position:relative;overflow:hidden;
+}
+.cx-item::before{
+  content:'';
+  position:absolute;left:0;top:0;bottom:0;width:3px;
+  border-radius:0 3px 3px 0;
+  transform:scaleY(0);transition:transform .3s;
+}
+.cx-item.active::before{transform:scaleY(1)}
+.cx-item.active{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.06)}
+.cx-item:hover{background:rgba(255,255,255,.03)}
+.cx-item-icon{
+  width:44px;height:44px;border-radius:12px;
+  display:grid;place-items:center;font-size:1.2rem;
+  flex-shrink:0;transition:transform .2s;
+}
+.cx-item.active .cx-item-icon{transform:scale(1.1)}
+.cx-item-text h3{font-size:.9rem;font-weight:600;transition:color .2s}
+.cx-item-text p{font-size:.75rem;color:#475569;margin-top:2px}
+.cx-item-arrow{margin-left:auto;color:#1e293b;transition:color .2s,transform .2s}
+.cx-item.active .cx-item-arrow{transform:translateX(3px)}
+/* progress bar under active item */
+.cx-item-bar{
+  position:absolute;bottom:0;left:0;height:2px;
+  background:currentColor;opacity:.4;
+  animation:none;
+  width:0;
+}
+.cx-item.active .cx-item-bar{animation:progress 4s linear infinite}
+@keyframes progress{from{width:0}to{width:100%}}
+
+/* ══════════════════════════════════════════
+   CONCEPT Y — MAGNETIC CURSOR FLOAT
+   Video card magnetically follows cursor
+══════════════════════════════════════════ */
+#conceptY{padding:80px 40px;border-bottom:1px solid rgba(255,255,255,.05);position:relative}
+.cy-wrap{max-width:760px;margin:40px auto 0;position:relative}
+
+/* the magnetic floating card */
+.cy-magnet{
+  position:fixed;
+  width:280px;
+  background:#0f0f1a;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;overflow:hidden;
+  pointer-events:none;
+  z-index:100;
+  opacity:0;
+  transform:scale(.85) rotate(-2deg);
+  transition:opacity .3s,transform .3s;
+  box-shadow:0 30px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.04);
+  will-change:transform;
+}
+.cy-magnet.visible{opacity:1;transform:scale(1) rotate(-1deg)}
+.cy-magnet-screen{
+  aspect-ratio:16/9;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+}
+/* CRT scanline */
+.cy-magnet-screen::after{
+  content:'';position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.12) 3px,rgba(0,0,0,.12) 4px);
+}
+/* glitch animation on card */
+@keyframes glitch-skew{
+  0%,90%,100%{transform:skewX(0)}
+  92%{transform:skewX(-3deg)}
+  94%{transform:skewX(2deg)}
+  96%{transform:skewX(-1deg)}
+}
+.cy-magnet-screen{animation:glitch-skew 5s infinite}
+.cy-magnet-inner{
+  width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;
+  font-size:.7rem;color:#334155;
+  transition:background .3s;
+}
+.cy-magnet-icon{font-size:1.6rem;transition:transform .3s}
+.cy-magnet.visible .cy-magnet-icon{transform:scale(1.1)}
+.cy-magnet-label{padding:10px 14px;display:flex;align-items:center;justify-content:space-between}
+.cy-magnet-label h4{font-size:.8rem;font-weight:600}
+.cy-magnet-label span{font-size:.65rem;color:#475569}
+
+/* list items */
+.cy-list{display:flex;flex-direction:column}
+.cy-item{
+  display:flex;align-items:center;gap:16px;
+  padding:22px 0;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  cursor:default;
+  transition:padding-left .25s;
+  position:relative;
+}
+.cy-item:last-child{border-bottom:none}
+.cy-item:hover{padding-left:8px}
+.cy-num{
+  font-size:.65rem;font-weight:700;color:#1e293b;
+  width:24px;flex-shrink:0;
+  font-variant-numeric:tabular-nums;
+}
+.cy-item:hover .cy-num{color:var(--amber)}
+.cy-title{flex:1}
+.cy-title h3{font-size:1.05rem;font-weight:600;transition:color .2s}
+.cy-item:hover .cy-title h3{color:#fff}
+.cy-title p{font-size:.75rem;color:#334155;margin-top:3px;transition:color .2s}
+.cy-item:hover .cy-title p{color:#475569}
+.cy-line{
+  position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:currentColor;transform:scaleX(0);transform-origin:left;
+  transition:transform .4s ease;opacity:.25;
+}
+.cy-item:hover .cy-line{transform:scaleX(1)}
+
+/* ══════════════════════════════════════════
+   CONCEPT Z — HOLOGRAPHIC 3D FLIP CARDS
+══════════════════════════════════════════ */
+#conceptZ{padding:80px 40px 100px}
+.cz-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:28px;margin-top:40px;
+}
+.cz-card-wrap{perspective:1200px;cursor:pointer}
+.cz-card{
+  position:relative;width:100%;
+  transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.4,0,.2,1);
+  border-radius:20px;
+}
+.cz-card-wrap:hover .cz-card,
+.cz-card-wrap.flipped .cz-card{transform:rotateY(180deg)}
+.cz-front,.cz-back{
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  border-radius:20px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.07);
+}
+.cz-front{
+  background:var(--card);
+  padding:28px;
+  display:flex;flex-direction:column;gap:14px;
+  min-height:220px;
+}
+.cz-back{
+  position:absolute;inset:0;
+  transform:rotateY(180deg);
+  background:#0c0c18;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;
+  padding:24px;
+}
+/* holographic shimmer on front */
+.cz-holo{
+  position:absolute;inset:0;border-radius:20px;
+  background:conic-gradient(from var(--holo-angle,0deg),
+    transparent 0%, rgba(168,85,247,.06) 10%,
+    rgba(56,189,248,.08) 20%, rgba(52,211,153,.06) 30%,
+    transparent 40%, rgba(251,191,36,.06) 60%,
+    rgba(251,113,133,.07) 75%, transparent 90%
+  );
+  opacity:0;transition:opacity .3s;
+  pointer-events:none;z-index:1;
+}
+.cz-card-wrap:hover .cz-holo{opacity:1}
+/* front content */
+.cz-icon-row{display:flex;align-items:center;justify-content:space-between}
+.cz-proj-icon{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;font-size:1.3rem;flex-shrink:0}
+.cz-flip-hint{
+  font-size:.62rem;color:#1e293b;
+  display:flex;align-items:center;gap:5px;
+  transition:color .3s;
+}
+.cz-card-wrap:hover .cz-flip-hint{color:#475569}
+.cz-front h3{font-size:1rem;font-weight:700;position:relative;z-index:2}
+.cz-front p{font-size:.78rem;color:#475569;line-height:1.6;position:relative;z-index:2}
+.cz-tags{display:flex;flex-wrap:wrap;gap:5px;position:relative;z-index:2}
+.cz-tag{padding:2px 8px;background:rgba(255,255,255,.05);border-radius:4px;font-size:.62rem;color:#64748b}
+/* back content */
+.cz-back-icon{
+  width:56px;height:56px;border-radius:50%;
+  display:grid;place-items:center;
+  border:2px solid rgba(255,255,255,.1);
+  font-size:1.4rem;
+  margin-bottom:4px;
+}
+.cz-back h3{font-size:.95rem;font-weight:700;text-align:center}
+.cz-back-play{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 20px;border-radius:10px;
+  font-size:.78rem;font-weight:600;
+  margin-top:8px;
+  border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.05);
+  transition:background .2s,border-color .2s;
+  cursor:pointer;
+}
+.cz-card-wrap.flipped .cz-back-play:hover{background:rgba(255,255,255,.1)}
+.cz-back-desc{font-size:.72rem;color:#475569;text-align:center;line-height:1.6;max-width:200px}
+
+/* ── note boxes ── */
+.concept-note{
+  max-width:860px;margin:28px auto 0;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:12px;padding:16px 22px;
+  font-size:.8rem;color:#475569;line-height:1.7;
+}
+.concept-note strong{color:#94a3b8}
+
+/* nav dots */
+.nav-pills{
+  display:flex;justify-content:center;gap:8px;
+  padding:32px 0 0;position:sticky;top:0;z-index:50;
+  background:linear-gradient(var(--bg),transparent);
+  padding-bottom:20px;
+}
+.npill{
+  padding:5px 16px;border-radius:99px;font-size:.72rem;font-weight:600;
+  border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);
+  color:#475569;cursor:pointer;transition:all .2s;text-decoration:none;
+}
+.npill:hover,.npill.active{background:rgba(255,255,255,.1);color:#e2e8f0;border-color:rgba(255,255,255,.15)}
+
+@media(max-width:768px){
+  .cx-layout{grid-template-columns:1fr}
+  .cx-preview{display:none}
+  #conceptX{padding:40px 20px}
+  #conceptY{padding:40px 20px}
+  #conceptZ{padding:40px 20px 60px}
+  .cy-magnet{display:none}
+  .cz-grid{grid-template-columns:1fr 1fr}
+  .page-title{padding:36px 20px 12px}
+}
+@media(max-width:480px){
+  .cz-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="page-title">
+  <h1>Next-Level Video Showcase</h1>
+  <p>3 innovative concepts — interact with each one</p>
+</div>
+
+<div class="nav-pills">
+  <a href="#conceptX" class="npill">X — Agency Split</a>
+  <a href="#conceptY" class="npill">Y — Magnetic Float</a>
+  <a href="#conceptZ" class="npill">Z — Holo Flip Cards</a>
+</div>
+
+<!-- ══════ CONCEPT X ══════ -->
+<section id="conceptX">
+  <div class="cx-label">
+    <div class="cx-badge" style="background:rgba(168,85,247,.12);color:var(--purple);border:1px solid rgba(168,85,247,.25)">X</div>
+    <div>
+      <h2>Agency Split — Live Preview Panel</h2>
+      <p>Hover the project list → the giant left panel morphs in real time. Like awwwards-winning agency sites.</p>
+    </div>
+  </div>
+
+  <div class="cx-layout">
+
+    <!-- LEFT: live preview -->
+    <div class="cx-preview" id="cxPreview">
+
+      <div class="cx-slide active" id="cx-slide-0">
+        <div class="cx-slide-icon" style="background:rgba(168,85,247,.12);color:var(--purple)">🚖</div>
+        <h3>Taxi Dispatch System</h3>
+        <p>Real-time fleet management with auto-assignment algorithms and live driver tracking.</p>
+        <div class="cx-wireframe">
+          <div class="cx-wrow"></div><div class="cx-wrow"></div><div class="cx-wrow"></div>
+        </div>
+        <div class="cx-proj-num">01</div>
+      </div>
+
+      <div class="cx-slide" id="cx-slide-1">
+        <div class="cx-slide-icon" style="background:rgba(52,211,153,.12);color:var(--emerald)">🛡️</div>
+        <h3>Insuranest</h3>
+        <p>Insurance management portal with policy tracking, premium billing & PDF generation.</p>
+        <div class="cx-wireframe">
+          <div class="cx-wrow"></div><div class="cx-wrow"></div><div class="cx-wrow"></div>
+        </div>
+        <div class="cx-proj-num">02</div>
+      </div>
+
+      <div class="cx-slide" id="cx-slide-2">
+        <div class="cx-slide-icon" style="background:rgba(56,189,248,.12);color:var(--sky)">🎓</div>
+        <h3>SalesCoach LMS</h3>
+        <p>White-label learning platform with drip courses, live coaching & WooCommerce subscriptions.</p>
+        <div class="cx-wireframe">
+          <div class="cx-wrow"></div><div class="cx-wrow"></div><div class="cx-wrow"></div>
+        </div>
+        <div class="cx-proj-num">03</div>
+      </div>
+
+      <div class="cx-slide" id="cx-slide-3">
+        <div class="cx-slide-icon" style="background:rgba(251,191,36,.12);color:var(--amber)">📱</div>
+        <h3>Flutter Mobile App</h3>
+        <p>Cross-platform app with real-time chat, push notifications and offline-first architecture.</p>
+        <div class="cx-wireframe">
+          <div class="cx-wrow"></div><div class="cx-wrow"></div><div class="cx-wrow"></div>
+        </div>
+        <div class="cx-proj-num">04</div>
+      </div>
+
+      <div class="cx-slide" id="cx-slide-4">
+        <div class="cx-slide-icon" style="background:rgba(251,113,133,.12);color:var(--rose)">🤖</div>
+        <h3>AI Chatbot Platform</h3>
+        <p>GPT-4 powered multi-tenant chatbot builder with analytics dashboard and embed widget.</p>
+        <div class="cx-wireframe">
+          <div class="cx-wrow"></div><div class="cx-wrow"></div><div class="cx-wrow"></div>
+        </div>
+        <div class="cx-proj-num">05</div>
+      </div>
+
+      <div class="cx-play-ring" id="cxPlayBtn">
+        <svg width="22" height="22" fill="white" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+      </div>
+
+      <div class="cx-now-playing">
+        <div class="cx-dot"></div>
+        <span id="cxNowLabel">Taxi Dispatch System</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: list -->
+    <div class="cx-list">
+
+      <div class="cx-item active" data-idx="0" style="--accent:var(--purple)">
+        <div class="cx-item-icon" style="background:rgba(168,85,247,.1)">🚖</div>
+        <div class="cx-item-text">
+          <h3>Taxi Dispatch System</h3>
+          <p>Laravel · MySQL · Maps API</p>
+        </div>
+        <svg class="cx-item-arrow" width="16" height="16" stroke="var(--purple)" strokeWidth="2" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <div class="cx-item-bar" style="color:var(--purple)"></div>
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0 3px 3px 0;background:var(--purple);transform:scaleY(1)"></div>
+      </div>
+
+      <div class="cx-item" data-idx="1" style="--accent:var(--emerald)">
+        <div class="cx-item-icon" style="background:rgba(52,211,153,.1)">🛡️</div>
+        <div class="cx-item-text">
+          <h3>Insuranest</h3>
+          <p>Laravel · Stripe · PDF Gen</p>
+        </div>
+        <svg class="cx-item-arrow" width="16" height="16" stroke="var(--emerald)" strokeWidth="2" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <div class="cx-item-bar" style="color:var(--emerald)"></div>
+      </div>
+
+      <div class="cx-item" data-idx="2" style="--accent:var(--sky)">
+        <div class="cx-item-icon" style="background:rgba(56,189,248,.1)">🎓</div>
+        <div class="cx-item-text">
+          <h3>Jarco / SalesCoach LMS</h3>
+          <p>WordPress · LearnDash · WooCommerce</p>
+        </div>
+        <svg class="cx-item-arrow" width="16" height="16" stroke="var(--sky)" strokeWidth="2" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <div class="cx-item-bar" style="color:var(--sky)"></div>
+      </div>
+
+      <div class="cx-item" data-idx="3" style="--accent:var(--amber)">
+        <div class="cx-item-icon" style="background:rgba(251,191,36,.1)">📱</div>
+        <div class="cx-item-text">
+          <h3>Flutter Mobile App</h3>
+          <p>Flutter · Dart · Firebase</p>
+        </div>
+        <svg class="cx-item-arrow" width="16" height="16" stroke="var(--amber)" strokeWidth="2" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <div class="cx-item-bar" style="color:var(--amber)"></div>
+      </div>
+
+      <div class="cx-item" data-idx="4" style="--accent:var(--rose)">
+        <div class="cx-item-icon" style="background:rgba(251,113,133,.1)">🤖</div>
+        <div class="cx-item-text">
+          <h3>AI Chatbot Platform</h3>
+          <p>Laravel · GPT-4 · WebSockets</p>
+        </div>
+        <svg class="cx-item-arrow" width="16" height="16" stroke="var(--rose)" strokeWidth="2" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <div class="cx-item-bar" style="color:var(--rose)"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="concept-note" style="max-width:100%">
+    <strong>Concept X — Agency Split:</strong> Hover project names on the right → the entire left panel cross-fades to a new visual, icon, description and background. An animated progress bar auto-advances every 4 seconds. The play button in the center would open your recorded video. This is the style used by <strong>Stripe, Linear, Vercel's own marketing pages</strong> and most awwwards-winning agency portfolios.
+  </div>
+</section>
+
+<!-- ══════ CONCEPT Y ══════ -->
+<section id="conceptY">
+  <div class="cx-label" style="max-width:760px;margin:0 auto">
+    <div class="cx-badge" style="background:rgba(251,191,36,.12);color:var(--amber);border:1px solid rgba(251,191,36,.25)">Y</div>
+    <div>
+      <h2>Magnetic Float — Video Follows Your Cursor</h2>
+      <p>Move your cursor over the list → a video card magnetically snaps and follows you. Desktop only.</p>
+    </div>
+  </div>
+
+  <!-- the floating magnetic card (follows cursor) -->
+  <div class="cy-magnet" id="cyMagnet">
+    <div class="cy-magnet-screen" id="cyScreen">
+      <div class="cy-magnet-inner" id="cyInner">
+        <div class="cy-magnet-icon" id="cyIcon">🚖</div>
+        <span>Demo preview</span>
+      </div>
+    </div>
+    <div class="cy-magnet-label">
+      <div>
+        <h4 id="cyTitle">Taxi Dispatch</h4>
+        <div id="cyStack" style="font-size:.65rem;color:#475569;margin-top:2px">Laravel · MySQL</div>
+      </div>
+      <span style="font-size:.65rem;color:#334155">▶ Watch</span>
+    </div>
+  </div>
+
+  <div class="cy-wrap">
+    <div class="cy-list" id="cyList">
+
+      <div class="cy-item" data-icon="🚖" data-title="Taxi Dispatch System" data-stack="Laravel · MySQL · Maps API" data-bg="radial-gradient(ellipse at 40% 40%,#1a0a2e,#07070f)">
+        <div class="cy-num">01</div>
+        <div class="cy-title">
+          <h3>Taxi Dispatch System</h3>
+          <p>Laravel · MySQL · Maps API · Real-time</p>
+        </div>
+        <svg width="20" height="20" fill="none" stroke="#1e293b" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+        <div class="cy-line" style="color:var(--purple)"></div>
+      </div>
+
+      <div class="cy-item" data-icon="🛡️" data-title="Insuranest" data-stack="Laravel · Stripe · PDF" data-bg="radial-gradient(ellipse at 60% 40%,#0a2010,#07070f)">
+        <div class="cy-num">02</div>
+        <div class="cy-title">
+          <h3>Insuranest</h3>
+          <p>Laravel · Stripe · PDF Generation</p>
+        </div>
+        <svg width="20" height="20" fill="none" stroke="#1e293b" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+        <div class="cy-line" style="color:var(--emerald)"></div>
+      </div>
+
+      <div class="cy-item" data-icon="🎓" data-title="SalesCoach LMS" data-stack="WordPress · LearnDash" data-bg="radial-gradient(ellipse at 30% 60%,#0a1520,#07070f)">
+        <div class="cy-num">03</div>
+        <div class="cy-title">
+          <h3>Jarco / SalesCoach LMS</h3>
+          <p>WordPress · LearnDash · WooCommerce</p>
+        </div>
+        <svg width="20" height="20" fill="none" stroke="#1e293b" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+        <div class="cy-line" style="color:var(--sky)"></div>
+      </div>
+
+      <div class="cy-item" data-icon="📱" data-title="Flutter Mobile App" data-stack="Flutter · Dart · Firebase" data-bg="radial-gradient(ellipse at 50% 30%,#1a1208,#07070f)">
+        <div class="cy-num">04</div>
+        <div class="cy-title">
+          <h3>Flutter Mobile App</h3>
+          <p>Flutter · Dart · Firebase</p>
+        </div>
+        <svg width="20" height="20" fill="none" stroke="#1e293b" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+        <div class="cy-line" style="color:var(--amber)"></div>
+      </div>
+
+      <div class="cy-item" data-icon="🤖" data-title="AI Chatbot Platform" data-stack="Laravel · GPT-4 · WS" data-bg="radial-gradient(ellipse at 70% 50%,#1a0810,#07070f)">
+        <div class="cy-num">05</div>
+        <div class="cy-title">
+          <h3>AI Chatbot Platform</h3>
+          <p>Laravel · GPT-4 · WebSockets</p>
+        </div>
+        <svg width="20" height="20" fill="none" stroke="#1e293b" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+        <div class="cy-line" style="color:var(--rose)"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="concept-note" style="max-width:760px;margin:24px auto 0">
+    <strong>Concept Y — Magnetic Float:</strong> As your cursor moves over each row, a floating video card teleports next to your mouse with a smooth spring animation. The card shows the project's thumbnail/video and snaps away when you leave. Very playful and unique — you rarely see this on developer portfolios. It makes visitors <em>want</em> to explore every row.
+  </div>
+</section>
+
+<!-- ══════ CONCEPT Z ══════ -->
+<section id="conceptZ">
+  <div class="cx-label" style="max-width:900px;margin:0 auto">
+    <div class="cx-badge" style="background:rgba(56,189,248,.12);color:var(--sky);border:1px solid rgba(56,189,248,.25)">Z</div>
+    <div>
+      <h2>Holographic Flip Cards — 3D Reveal</h2>
+      <p>Hover to see a holographic shimmer. Click any card to flip it and reveal the video side.</p>
+    </div>
+  </div>
+
+  <div class="cz-grid" style="max-width:900px;margin:0 auto">
+
+    <div class="cz-card-wrap" onclick="this.classList.toggle('flipped')">
+      <div class="cz-card" style="min-height:220px">
+        <div class="cz-front">
+          <div class="cz-holo"></div>
+          <div class="cz-icon-row">
+            <div class="cz-proj-icon" style="background:rgba(168,85,247,.12)">🚖</div>
+            <div class="cz-flip-hint">
+              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              flip to watch
+            </div>
+          </div>
+          <h3>Taxi Dispatch System</h3>
+          <p>Two-sided fleet management with real-time dispatch and auto-assignment.</p>
+          <div class="cz-tags">
+            <span class="cz-tag" style="color:var(--purple)">Laravel</span>
+            <span class="cz-tag">MySQL</span>
+            <span class="cz-tag">Maps API</span>
+          </div>
+        </div>
+        <div class="cz-back" style="background:radial-gradient(ellipse at 50% 50%,#1a0a2e,#07070f)">
+          <div class="cz-back-icon" style="background:rgba(168,85,247,.1);border-color:rgba(168,85,247,.25)">🚖</div>
+          <h3 style="color:var(--purple)">Taxi Dispatch System</h3>
+          <p class="cz-back-desc">Your recorded demo video plays here in a full player.</p>
+          <div class="cz-back-play" style="color:var(--purple);border-color:rgba(168,85,247,.2)">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+            Play Demo
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cz-card-wrap" onclick="this.classList.toggle('flipped')">
+      <div class="cz-card" style="min-height:220px">
+        <div class="cz-front">
+          <div class="cz-holo"></div>
+          <div class="cz-icon-row">
+            <div class="cz-proj-icon" style="background:rgba(52,211,153,.12)">🛡️</div>
+            <div class="cz-flip-hint">
+              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              flip to watch
+            </div>
+          </div>
+          <h3>Insuranest</h3>
+          <p>Full-stack insurance portal with policy management and automated billing.</p>
+          <div class="cz-tags">
+            <span class="cz-tag" style="color:var(--emerald)">Laravel</span>
+            <span class="cz-tag">Stripe</span>
+            <span class="cz-tag">PDF Gen</span>
+          </div>
+        </div>
+        <div class="cz-back" style="background:radial-gradient(ellipse at 50% 50%,#0a2010,#07070f)">
+          <div class="cz-back-icon" style="background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.25)">🛡️</div>
+          <h3 style="color:var(--emerald)">Insuranest</h3>
+          <p class="cz-back-desc">Your recorded demo video plays here in a full player.</p>
+          <div class="cz-back-play" style="color:var(--emerald);border-color:rgba(52,211,153,.2)">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+            Play Demo
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cz-card-wrap" onclick="this.classList.toggle('flipped')">
+      <div class="cz-card" style="min-height:220px">
+        <div class="cz-front">
+          <div class="cz-holo"></div>
+          <div class="cz-icon-row">
+            <div class="cz-proj-icon" style="background:rgba(56,189,248,.12)">🎓</div>
+            <div class="cz-flip-hint">
+              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              flip to watch
+            </div>
+          </div>
+          <h3>SalesCoach LMS</h3>
+          <p>White-label LMS with drip courses, live coaching and e-commerce subscriptions.</p>
+          <div class="cz-tags">
+            <span class="cz-tag" style="color:var(--sky)">WordPress</span>
+            <span class="cz-tag">LearnDash</span>
+            <span class="cz-tag">WooCommerce</span>
+          </div>
+        </div>
+        <div class="cz-back" style="background:radial-gradient(ellipse at 50% 50%,#0a1520,#07070f)">
+          <div class="cz-back-icon" style="background:rgba(56,189,248,.1);border-color:rgba(56,189,248,.25)">🎓</div>
+          <h3 style="color:var(--sky)">SalesCoach LMS</h3>
+          <p class="cz-back-desc">Your recorded demo video plays here in a full player.</p>
+          <div class="cz-back-play" style="color:var(--sky);border-color:rgba(56,189,248,.2)">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+            Play Demo
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cz-card-wrap" onclick="this.classList.toggle('flipped')">
+      <div class="cz-card" style="min-height:220px">
+        <div class="cz-front">
+          <div class="cz-holo"></div>
+          <div class="cz-icon-row">
+            <div class="cz-proj-icon" style="background:rgba(251,191,36,.12)">📱</div>
+            <div class="cz-flip-hint">
+              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+              flip to watch
+            </div>
+          </div>
+          <h3>Flutter Mobile App</h3>
+          <p>Cross-platform app with real-time chat and offline-first Firebase architecture.</p>
+          <div class="cz-tags">
+            <span class="cz-tag" style="color:var(--amber)">Flutter</span>
+            <span class="cz-tag">Dart</span>
+            <span class="cz-tag">Firebase</span>
+          </div>
+        </div>
+        <div class="cz-back" style="background:radial-gradient(ellipse at 50% 50%,#1a1208,#07070f)">
+          <div class="cz-back-icon" style="background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.25)">📱</div>
+          <h3 style="color:var(--amber)">Flutter Mobile App</h3>
+          <p class="cz-back-desc">Your recorded demo video plays here in a full player.</p>
+          <div class="cz-back-play" style="color:var(--amber);border-color:rgba(251,191,36,.2)">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+            Play Demo
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="concept-note" style="max-width:900px;margin:28px auto 0">
+    <strong>Concept Z — Holographic Flip:</strong> Each card has a subtle <strong>rainbow holographic shimmer</strong> on hover (like a holographic sticker/trading card). Click → the card does a smooth <strong>3D flip</strong> to reveal the video player side with the project's accent color. Incredibly satisfying to interact with. Unique — almost no developer portfolios use this. Works on mobile via tap.
+  </div>
+</section>
+
+<script>
+/* ── CONCEPT X: auto-rotate + hover ── */
+const cxItems = document.querySelectorAll('.cx-item');
+const cxSlides = document.querySelectorAll('.cx-slide');
+const cxNow = document.getElementById('cxNowLabel');
+let cxActive = 0, cxTimer;
+const names = ['Taxi Dispatch System','Insuranest','SalesCoach LMS','Flutter Mobile App','AI Chatbot'];
+
+function cxActivate(idx) {
+  cxItems.forEach(i => {
+    i.classList.remove('active');
+    const bar = i.querySelector('.cx-item-bar');
+    if(bar) bar.style.animation = 'none';
+    const line = i.querySelector('div[style*="scaleY(1)"]');
+  });
+  cxSlides.forEach(s => s.classList.remove('active'));
+  cxItems[idx].classList.add('active');
+  cxSlides[idx].classList.add('active');
+  cxNow.textContent = names[idx];
+  cxActive = idx;
+  // re-trigger bar animation
+  const bar = cxItems[idx].querySelector('.cx-item-bar');
+  if(bar){ bar.style.animation='none'; void bar.offsetWidth; bar.style.animation=''; }
+}
+
+cxItems.forEach((item, i) => {
+  item.addEventListener('mouseenter', () => { clearInterval(cxTimer); cxActivate(i); });
+  item.addEventListener('mouseleave', () => { startTimer(); });
+});
+
+function startTimer(){
+  clearInterval(cxTimer);
+  cxTimer = setInterval(() => {
+    cxActivate((cxActive + 1) % cxItems.length);
+  }, 4000);
+}
+startTimer();
+
+/* ── CONCEPT Y: magnetic float ── */
+const magnet = document.getElementById('cyMagnet');
+const cyList = document.getElementById('cyList');
+const cyIcon = document.getElementById('cyIcon');
+const cyTitle = document.getElementById('cyTitle');
+const cyStack = document.getElementById('cyStack');
+const cyScreen = document.getElementById('cyScreen');
+const cyInner = document.getElementById('cyInner');
+
+let mouseX = 0, mouseY = 0, curX = 0, curY = 0;
+let magnetVisible = false;
+const bgs = ['radial-gradient(ellipse at 40% 40%,#1a0a2e,#07070f)',
+             'radial-gradient(ellipse at 60% 40%,#0a2010,#07070f)',
+             'radial-gradient(ellipse at 30% 60%,#0a1520,#07070f)',
+             'radial-gradient(ellipse at 50% 30%,#1a1208,#07070f)',
+             'radial-gradient(ellipse at 70% 50%,#1a0810,#07070f)'];
+
+document.addEventListener('mousemove', e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+function lerp(a, b, t){ return a + (b - a) * t; }
+
+function animateMagnet(){
+  curX = lerp(curX, mouseX, 0.12);
+  curY = lerp(curY, mouseY, 0.12);
+  magnet.style.left = (curX + 20) + 'px';
+  magnet.style.top = (curY - 80) + 'px';
+  requestAnimationFrame(animateMagnet);
+}
+animateMagnet();
+
+const cyItems = document.querySelectorAll('.cy-item');
+cyItems.forEach((item, i) => {
+  item.addEventListener('mouseenter', () => {
+    magnet.classList.add('visible');
+    cyIcon.textContent = item.dataset.icon;
+    cyTitle.textContent = item.dataset.title;
+    cyStack.textContent = item.dataset.stack;
+    cyInner.style.background = item.dataset.bg;
+  });
+  item.addEventListener('mouseleave', () => {
+    magnet.classList.remove('visible');
+  });
+});
+
+/* ── CONCEPT Z: holographic shimmer ── */
+document.querySelectorAll('.cz-card-wrap').forEach(wrap => {
+  const holo = wrap.querySelector('.cz-holo');
+  wrap.addEventListener('mousemove', e => {
+    const r = wrap.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    const angle = Math.atan2(y - r.height/2, x - r.width/2) * (180/Math.PI);
+    holo.style.setProperty('--holo-angle', angle + 'deg');
+  });
+});
+</script>
+</body>
+</html>
