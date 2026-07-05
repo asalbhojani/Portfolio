@@ -6,6 +6,7 @@ import Cursor       from './components/Cursor'
 import GrainOverlay from './components/GrainOverlay'
 import Loader       from './components/Loader'
 import Portfolio    from './components/Portfolio'
+import ScrollProgress from './components/ScrollProgress'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -14,8 +15,7 @@ export default function App() {
 
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.3,
-      easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      lerp: 0.08,
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,
@@ -42,6 +42,7 @@ export default function App() {
     <>
       <Cursor />
       <GrainOverlay />
+      <ScrollProgress />
       <Loader onComplete={() => setLoaderDone(true)} />
       <Portfolio loaderDone={loaderDone} />
     </>

@@ -1,14 +1,20 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import * as THREE from 'three'
+import {
+  WebGLRenderer, Scene, PerspectiveCamera, BufferGeometry, BufferAttribute,
+  PointsMaterial, Points, IcosahedronGeometry, MeshBasicMaterial, Mesh,
+  TorusKnotGeometry, MeshStandardMaterial, PointLight, AmbientLight, Clock,
+} from 'three'
 import { cssVarColor } from '../utils/cssColor'
 import { rafThrottle } from '../utils/rafThrottle'
 import { debounce } from '../utils/debounce'
+import { canRenderWebGL } from '../utils/webgl'
 
 export default function HeroCanvas() {
   const canvasRef = useRef(null)
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < 768
   )
+  const [useFallback, setUseFallback] = useState(() => !canRenderWebGL())
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)')
@@ -18,17 +24,24 @@ export default function HeroCanvas() {
   }, [])
 
   useLayoutEffect(() => {
-    if (isMobile) return
+    if (isMobile || useFallback) return
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    let renderer
+    try {
+      renderer = new WebGLRenderer({ canvas, alpha: true, antialias: true })
+    } catch (err) {
+      console.warn('HeroCanvas: WebGL init failed, using CSS fallback', err)
+      setUseFallback(true)
+      return
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
     renderer.setSize(canvas.offsetWidth, canvas.offsetHeight)
     renderer.setClearColor(cssVarColor('--bg'), 0)
 
-    const scene  = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(60, canvas.offsetWidth / canvas.offsetHeight, 0.1, 1000)
+    const scene  = new Scene()
+    const camera = new PerspectiveCamera(60, canvas.offsetWidth / canvas.offsetHeight, 0.1, 1000)
     camera.position.set(0, 0, 7)
 
     const ACCENT   = cssVarColor('--accent')
@@ -48,37 +61,37 @@ export default function HeroCanvas() {
       pos[i*3+2] = r * Math.cos(p)
       vel.push((Math.random() - .5) * .003, (Math.random() - .5) * .003, (Math.random() - .5) * .002)
     }
-    const pGeo = new THREE.BufferGeometry()
-    pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
-    const pMat = new THREE.PointsMaterial({ color: ACCENT, size: .04, sizeAttenuation: true, transparent: true, opacity: .6 })
-    scene.add(new THREE.Points(pGeo, pMat))
+    const pGeo = new BufferGeometry()
+    pGeo.setAttribute('position', new BufferAttribute(pos, 3))
+    const pMat = new PointsMaterial({ color: ACCENT, size: .04, sizeAttenuation: true, transparent: true, opacity: .6 })
+    scene.add(new Points(pGeo, pMat))
 
     // Wireframe icosahedron
-    const iGeo = new THREE.IcosahedronGeometry(1.8, 1)
-    const iMat = new THREE.MeshBasicMaterial({ color: ACCENT, wireframe: true, transparent: true, opacity: .15 })
-    const ico  = new THREE.Mesh(iGeo, iMat)
+    const iGeo = new IcosahedronGeometry(1.8, 1)
+    const iMat = new MeshBasicMaterial({ color: ACCENT, wireframe: true, transparent: true, opacity: .15 })
+    const ico  = new Mesh(iGeo, iMat)
     scene.add(ico)
 
     // Solid metallic torus knot — the hero centerpiece
-    const tkGeo = new THREE.TorusKnotGeometry(1.35, 0.42, 220, 32, 2, 3)
-    const tkMat = new THREE.MeshStandardMaterial({ color: ACCENT, roughness: .28, metalness: .85, envMapIntensity: 1 })
-    const tKnot = new THREE.Mesh(tkGeo, tkMat)
+    const tkGeo = new TorusKnotGeometry(1.35, 0.42, 220, 32, 2, 3)
+    const tkMat = new MeshStandardMaterial({ color: ACCENT, roughness: .28, metalness: .85, envMapIntensity: 1 })
+    const tKnot = new Mesh(tkGeo, tkMat)
     scene.add(tKnot)
 
     // Three-light rig: accent key, teal rim, warm white fill
-    const keyLight = new THREE.PointLight(ACCENT, 12, 20)
+    const keyLight = new PointLight(ACCENT, 12, 20)
     keyLight.position.set(3, 2, 4)
     scene.add(keyLight)
 
-    const rimLight = new THREE.PointLight(ACCENT_2, 8, 20)
+    const rimLight = new PointLight(ACCENT_2, 8, 20)
     rimLight.position.set(-4, -1, 3)
     scene.add(rimLight)
 
-    const fillLight = new THREE.PointLight(WHITE, 3, 20)
+    const fillLight = new PointLight(WHITE, 3, 20)
     fillLight.position.set(0, 4, -3)
     scene.add(fillLight)
 
-    scene.add(new THREE.AmbientLight(WHITE, 0.15))
+    scene.add(new AmbientLight(WHITE, 0.15))
 
     let tX = 0, tY = 0
     const onMouse = rafThrottle(e => {
@@ -94,7 +107,7 @@ export default function HeroCanvas() {
     }, 150)
     window.addEventListener('resize', onResize)
 
-    const clock = new THREE.Clock()
+    const clock = new Clock()
     let frame = null
     const animate = () => {
       frame = requestAnimationFrame(animate)
@@ -139,9 +152,9 @@ export default function HeroCanvas() {
       iGeo.dispose(); iMat.dispose()
       tkGeo.dispose(); tkMat.dispose()
     }
-  }, [isMobile])
+  }, [isMobile, useFallback])
 
-  if (isMobile) {
+  if (isMobile || useFallback) {
     return <div className="hero-canvas-fallback" aria-hidden="true" />
   }
 

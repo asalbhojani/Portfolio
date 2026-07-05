@@ -4,6 +4,9 @@ import ScrollTrigger from 'gsap/ScrollTrigger'
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
 import { useScramble } from '../hooks/useScramble'
 import { rafThrottle } from '../utils/rafThrottle'
+import { isLowEndDevice } from '../utils/webgl'
+
+const SKIP_TILT = isLowEndDevice() || (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
 
 const PROJECTS = [
   {
@@ -81,6 +84,16 @@ const PanelMockup = memo(function PanelMockup({ thumb, id }) {
     my.set((e.clientY - r.top)  / r.height - 0.5)
   })
   const onMouseLeave = () => { mx.set(0); my.set(0) }
+
+  // Low-end devices / reduced-motion: skip the spring-driven tilt entirely,
+  // render a static panel instead of wiring up mousemove listeners.
+  if (SKIP_TILT) {
+    return (
+      <div ref={ref} className="panel-mockup">
+        <ThumbVisual thumb={thumb} id={id} />
+      </div>
+    )
+  }
 
   return (
     <motion.div

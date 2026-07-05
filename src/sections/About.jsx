@@ -158,8 +158,10 @@ export default function About() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '20px' }}>
                   <img
                     src={avatar}
-                    alt="Asal"
+                    alt="Asal Fatima"
                     loading="lazy"
+                    width={56}
+                    height={56}
                     style={{ width: 56, height: 56, borderRadius: 2, objectFit: 'cover', objectPosition: 'top', border: '1px solid var(--border-2)', flexShrink: 0 }}
                   />
                   <div>

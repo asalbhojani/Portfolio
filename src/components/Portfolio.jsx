@@ -1,15 +1,15 @@
 import { lazy, Suspense, useLayoutEffect } from 'react'
 import gsap from 'gsap'
-import ScrollTrigger from 'gsap/ScrollTrigger'
 import Navbar   from './Navbar'
 import Marquee  from './Marquee'
 import Hero     from '../sections/Hero'
-import About    from '../sections/About'
-import Skills   from '../sections/Skills'
-import Contact  from '../sections/Contact'
+import SectionSkeleton from './SectionSkeleton'
 
+const About    = lazy(() => import('../sections/About'))
+const Skills   = lazy(() => import('../sections/Skills'))
 const Projects = lazy(() => import('../sections/Projects'))
 const Terminal = lazy(() => import('../sections/Terminal'))
+const Contact  = lazy(() => import('../sections/Contact'))
 
 function Divider() {
   return <div style={{ width: '100%', height: 1, background: 'var(--border)', opacity: .5 }} />
@@ -63,20 +63,26 @@ export default function Portfolio({ loaderDone }) {
         <Hero loaderDone={loaderDone} />
         <Marquee />
         <Divider />
-        <About />
+        <Suspense fallback={<SectionSkeleton variant="about" />}>
+          <About />
+        </Suspense>
         <Divider />
-        <Skills />
+        <Suspense fallback={<SectionSkeleton variant="skills" />}>
+          <Skills />
+        </Suspense>
         <Marquee reverse />
         <Divider />
-        <Suspense fallback={null}>
+        <Suspense fallback={<SectionSkeleton variant="projects" />}>
           <Projects />
         </Suspense>
         <Divider />
-        <Suspense fallback={null}>
+        <Suspense fallback={<SectionSkeleton variant="terminal" />}>
           <Terminal />
         </Suspense>
         <Divider />
-        <Contact />
+        <Suspense fallback={<SectionSkeleton variant="contact" />}>
+          <Contact />
+        </Suspense>
       </main>
       <Footer />
     </>

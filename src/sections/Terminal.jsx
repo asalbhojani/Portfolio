@@ -62,6 +62,9 @@ const RESPONSES = {
 
 const AUTO_SEQUENCE = ['help', 'asal --skills', 'asal --contact']
 
+function hintHoverIn(e) { e.currentTarget.style.borderColor = 'var(--gold-dim)'; e.currentTarget.style.color = 'var(--gold)' }
+function hintHoverOut(e) { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--ivory-mute)' }
+
 export default function Terminal() {
   const sectionRef  = useRef(null)
   const titleRef    = useRef(null)
@@ -222,14 +225,16 @@ export default function Terminal() {
           {Object.keys(RESPONSES).filter(k => k !== 'clear').map(k => (
             <button
               key={k}
+              className="tactile-btn"
+              aria-label={`Run command ${k}`}
               onClick={() => { setInput(''); runCommand(k); inputRef.current?.focus() }}
               style={{
                 fontFamily: 'var(--mono)', fontSize: '.6rem', letterSpacing: '.1em',
                 padding: '5px 12px', border: '1px solid var(--border)', color: 'var(--ivory-mute)',
-                borderRadius: 2, transition: 'all .2s', cursor: 'none',
+                borderRadius: 2, cursor: 'none',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--gold-dim)'; e.currentTarget.style.color = 'var(--gold)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--ivory-mute)' }}
+              onMouseEnter={hintHoverIn}
+              onMouseLeave={hintHoverOut}
             >
               {k}
             </button>

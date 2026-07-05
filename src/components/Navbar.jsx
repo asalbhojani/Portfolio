@@ -12,11 +12,20 @@ const LINKS = [
 export default function Navbar({ visible }) {
   const [scrolled, setScrolled]   = useState(false)
   const [activeHref, setActive]   = useState('')
+  const [hidden, setHidden]       = useState(false)
   const navRef = useRef(null)
+  const lastY  = useRef(0)
 
   useEffect(() => {
     const onScroll = rafThrottle(() => {
-      setScrolled(window.scrollY > 40)
+      const y = window.scrollY
+      setScrolled(y > 40)
+
+      // Hide on scroll down, reveal on scroll up — ignore the tiny jitter near the top
+      if (y > lastY.current + 4 && y > 120) setHidden(true)
+      else if (y < lastY.current - 4 || y <= 120) setHidden(false)
+      lastY.current = y
+
       // Active section tracking
       const sections = ['#contact', '#projects', '#skills', '#about', '#home']
       for (const id of sections) {
@@ -40,7 +49,7 @@ export default function Navbar({ visible }) {
   return (
     <>
       {/* Desktop nav */}
-      <nav ref={navRef} className={`nav${scrolled ? ' scrolled' : ''}`}>
+      <nav ref={navRef} className={`nav${scrolled ? ' scrolled' : ''}${hidden ? ' nav-hidden' : ''}`}>
         <div className="nav-inner">
           <a href="#home" className="nav-logo" style={{ color: 'var(--white)' }}>AFB</a>
           <ul className="nav-links">

@@ -68,6 +68,10 @@ a { color: inherit; text-decoration: none; }
 button { background: none; border: none; cursor: none; font-family: inherit; }
 input, textarea { font-family: inherit; }
 
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--gold-dim); }
@@ -135,6 +139,35 @@ input, textarea { font-family: inherit; }
   transform: translateY(-50%);
 }
 
+/* ── Section skeletons ──────────────────────────────── */
+.section-skeleton { display: flex; align-items: center; padding: 60px 0; }
+.skel-block {
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-surface) 50%, var(--bg-card) 75%);
+  background-size: 400% 100%;
+  animation: skel-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes skel-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skel-block { animation: none; }
+}
+
+.tactile-btn { transition: all .2s, transform .1s; }
+.tactile-btn:active { transform: scale(.94); }
+
+/* ── Scroll progress ────────────────────────────────── */
+.scroll-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px;
+  z-index: 9997; pointer-events: none; background: transparent;
+}
+.scroll-progress-bar {
+  height: 100%; width: 0%; background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
 /* ── Navbar ─────────────────────────────────────────── */
 .nav {
   position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h);
@@ -143,9 +176,11 @@ input, textarea { font-family: inherit; }
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   background: color-mix(in srgb, var(--bg) 65%, transparent);
   border-bottom: 1px solid transparent;
-  transition: border-color .3s;
+  transition: border-color .3s, transform .35s ease;
+  transform: translateY(0);
 }
 .nav.scrolled { border-bottom-color: var(--border); }
+.nav.nav-hidden { transform: translateY(-100%); }
 .nav-inner {
   max-width: 1320px; margin: 0 auto; padding: 0 48px;
   height: 100%; display: flex; align-items: center; justify-content: space-between;
@@ -175,6 +210,7 @@ input, textarea { font-family: inherit; }
   border-radius: 2px; transition: background .2s, border-color .2s;
 }
 .nav-cta:hover { background: var(--gold-glow); border-color: var(--gold); }
+.nav-cta:active { transform: scale(.96); }
 
 /* ── Hero ───────────────────────────────────────────── */
 .hero {
@@ -281,6 +317,7 @@ input, textarea { font-family: inherit; }
   transition: background .2s, transform .15s;
 }
 .btn-g:hover { background: var(--gold-l); transform: translateY(-1px); }
+.btn-g:active { transform: scale(.96); }
 .btn-o {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 12px 28px; border: 1px solid var(--border-2); color: var(--ivory-dim);
@@ -289,6 +326,7 @@ input, textarea { font-family: inherit; }
   transition: border-color .2s, color .2s, background .2s;
 }
 .btn-o:hover { border-color: var(--gold-dim); color: var(--gold); background: var(--gold-glow); }
+.btn-o:active { transform: scale(.96); }
 
 /* ── Marquee ────────────────────────────────────────── */
 .marquee-wrap {
@@ -556,6 +594,7 @@ input, textarea { font-family: inherit; }
   align-self: flex-start; margin-top: 8px;
 }
 .form-submit:hover { background: var(--gold-l); transform: translateY(-1px); }
+.form-submit:active { transform: scale(.96); }
 .form-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
 .form-error { font-family: var(--mono); font-size: .62rem; letter-spacing: .04em; color: var(--error); }
 .form-spinner {
@@ -668,6 +707,7 @@ input, textarea { font-family: inherit; }
   padding: 4px 12px; transition: color .2s;
 }
 .mobile-nav-item.active, .mobile-nav-item:hover { color: var(--gold); }
+.mobile-nav-item:active { transform: scale(.92); }
 
 /* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 1024px) {
