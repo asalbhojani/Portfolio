@@ -7,6 +7,7 @@ import GrainOverlay from './components/GrainOverlay'
 import Loader       from './components/Loader'
 import Portfolio    from './components/Portfolio'
 import ScrollProgress from './components/ScrollProgress'
+import { initDeviceOrientation } from './utils/deviceOrientation'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -14,8 +15,11 @@ export default function App() {
   const [loaderDone, setLoaderDone] = useState(false)
 
   useEffect(() => {
+    const isMobile = window.matchMedia('(max-width: 767px)').matches
+    if (isMobile) initDeviceOrientation()
+
     const lenis = new Lenis({
-      lerp: 0.08,
+      lerp: isMobile ? 0.12 : 0.08,
       orientation: 'vertical',
       gestureOrientation: 'vertical',
       smoothWheel: true,

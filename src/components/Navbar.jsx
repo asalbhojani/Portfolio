@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { rafThrottle } from '../utils/rafThrottle'
+import MobileNav from './MobileNav'
 
 const LINKS = [
   { href: '#about',    label: 'About',    icon: <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg> },
@@ -66,18 +67,7 @@ export default function Navbar({ visible }) {
       </nav>
 
       {/* Mobile bottom nav */}
-      <nav className="mobile-nav" aria-label="Mobile navigation">
-        {LINKS.map(l => (
-          <a
-            key={l.href}
-            href={l.href}
-            className={`mobile-nav-item${activeHref === l.href ? ' active' : ''}`}
-          >
-            {l.icon}
-            <span>{l.label}</span>
-          </a>
-        ))}
-      </nav>
+      <MobileNav />
     </>
   )
 }

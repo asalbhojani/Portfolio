@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import {
   WebGLRenderer, Scene, PerspectiveCamera, BufferGeometry, BufferAttribute,
   PointsMaterial, Points, IcosahedronGeometry, MeshBasicMaterial, Mesh,
@@ -8,20 +8,13 @@ import { cssVarColor } from '../utils/cssColor'
 import { rafThrottle } from '../utils/rafThrottle'
 import { debounce } from '../utils/debounce'
 import { canRenderWebGL } from '../utils/webgl'
+import { useIsMobile } from '../hooks/useIsMobile'
+import HeroCanvasMobile from './HeroCanvasMobile'
 
 export default function HeroCanvas() {
   const canvasRef = useRef(null)
-  const [isMobile, setIsMobile] = useState(
-    () => typeof window !== 'undefined' && window.innerWidth < 768
-  )
+  const isMobile = useIsMobile()
   const [useFallback, setUseFallback] = useState(() => !canRenderWebGL())
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
-    const onChange = e => setIsMobile(e.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
 
   useLayoutEffect(() => {
     if (isMobile || useFallback) return
@@ -154,8 +147,12 @@ export default function HeroCanvas() {
     }
   }, [isMobile, useFallback])
 
-  if (isMobile || useFallback) {
+  if (useFallback) {
     return <div className="hero-canvas-fallback" aria-hidden="true" />
+  }
+
+  if (isMobile) {
+    return <HeroCanvasMobile />
   }
 
   return <canvas ref={canvasRef} className="hero-canvas" />
